@@ -15,7 +15,7 @@ import java.util.Random;
  */
 public class Pipe_Double {
     private static final int DISTANCE_MIN=150;
-    private static final int DISTANCE_MAX=250;
+    private static final int DISTANCE_MAX=200;
     private static final int HEIGHT_MIN=300;
     private static final int HEIGHT_MAX=500;
     private Pipe up;

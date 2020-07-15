@@ -12,6 +12,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
+import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -95,7 +97,9 @@ public class BluePanel extends javax.swing.JPanel {
     }
    
     public void drawPipes(Graphics g){
-        for(Pipe_Double p:pipes){
+        Iterator<Pipe_Double> iter=pipes.iterator();
+        while(iter.hasNext()){
+            Pipe_Double p=iter.next();
             p.drawPipes(g);
         }
     }
@@ -113,23 +117,45 @@ public class BluePanel extends javax.swing.JPanel {
                 }
                 repaint();// ham nay goi ham paint trong ham paint co ham ve lai==> ve lai theo x moi
                 // neu pipe dau tien ben trai sat man hinh thi ve lai
-                for(int i=0;i<pipes.size();i++){
-                    if(pipes.get(i).getUp().x+pipes.get(i).getUp().width==0){
-                        Pipe_Double p= new Pipe_Double(Color.GREEN,50, HEIGHT, r);
+                
+                for (ListIterator <Pipe_Double> iterator = pipes.listIterator(); iterator.hasNext(); ) {
+                Pipe_Double p = iterator.next();
+                    if(p.getUp().x+p.getUp().width==0){
+                        Pipe_Double pN= new Pipe_Double(Color.GREEN,50, HEIGHT, r);
                         //p.setDistance(50);
-                        p.getUp().x=WIDTH;
-                        p.getDown().x=WIDTH;
-                        pipes.add(p);
-                        pipes.remove(i);
+                        pN.getUp().x=WIDTH;
+                        pN.getDown().x=WIDTH;
+                        
+                        iterator.remove();
+                        iterator.add(pN);
+                        
                     }
-                    if(pipes.get(i).getUp().intersects(bird)||pipes.get(i).getDown().intersects(bird)){
+                    if(p.getUp().intersects(bird)||p.getDown().intersects(bird)){
                        
                         isPlaying=false;  
                     }
-                    if(bird.x==pipes.get(i).getUp().x+pipes.get(i).getUp().width){
+                    if(bird.x==p.getUp().x+p.getUp().width){
                         controlPanel.setPoint(controlPanel.getPoint()+1);
                     }
                 }
+//                for(int i=0;i<pipes.size();i++){
+//                    if(pipes.get(i).getUp().x+pipes.get(i).getUp().width==0){
+//                        Pipe_Double p= new Pipe_Double(Color.GREEN,50, HEIGHT, r);
+//                        //p.setDistance(50);
+//                        p.getUp().x=WIDTH;
+//                        p.getDown().x=WIDTH;
+//                        pipes.add(p);
+//                        pipes.remove(i);
+//                        
+//                    }
+//                    if(pipes.get(i).getUp().intersects(bird)||pipes.get(i).getDown().intersects(bird)){
+//                       
+//                        isPlaying=false;  
+//                    }
+//                    if(bird.x==pipes.get(i).getUp().x+pipes.get(i).getUp().width){
+//                        controlPanel.setPoint(controlPanel.getPoint()+1);
+//                    }
+//                }
                 try{
                     Thread.sleep(5);
                 }catch(Exception e){
