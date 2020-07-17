@@ -6,11 +6,7 @@
 package GUI;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Graphics;
-import java.awt.event.KeyEvent;
-import javax.swing.BorderFactory;
+
 import javax.swing.border.BevelBorder;
 
 /**
@@ -40,7 +36,6 @@ public class MainFrame extends javax.swing.JFrame {
         
         controlPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
         this.add(controlPanel,BorderLayout.NORTH);
-        
     }
     
     

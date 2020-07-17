@@ -5,19 +5,33 @@
  */
 package GUI;
 
+import Entity.Audio;
 import Entity.Bird;
 import Entity.Pipe;
 import Entity.Pipe_Double;
 import java.awt.Color;
 import java.awt.Graphics;
+
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.ListIterator;
+import java.util.Queue;
 import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.UnsupportedAudioFileException;
+
 import javax.swing.JOptionPane;
 
 /**
@@ -32,15 +46,19 @@ public class BluePanel extends javax.swing.JPanel {
     static int WIDTH;
     static int HEIGHT;
     static final int NUM_REC=4;
-    Vector<Pipe_Double> pipes;
+    
+    List<Pipe_Double> pipes;
     Graphics g;
-    boolean isPlaying=false;
+    public static boolean isPlaying=false;
     Bird bird;
     Thread t1;
     Thread tCheck;
     Thread tBird;
     Random r= new Random(System.currentTimeMillis());
     ControlPanel controlPanel;
+    
+    
+    
     public BluePanel(ControlPanel controlPanel) {
         this.controlPanel=controlPanel;
         this.setSize(1500,1500);
@@ -50,12 +68,10 @@ public class BluePanel extends javax.swing.JPanel {
         createBird();
         initComponents();
         startGame(this.isPlaying);
-        
-        
     }
     public void startGame(boolean isPlaying){
         if(isPlaying==true){
-            Pipe_Double.resetStart();
+            
             init();
             controlPanel.setPoint(0);
             createBird();
@@ -65,23 +81,23 @@ public class BluePanel extends javax.swing.JPanel {
             tCheck.start();
         }
     }
+   
     public void init(){
-        pipes= new  Vector<>();
-        for(int i=0;i<5;i++){
-            Pipe_Double pipe_Double= new Pipe_Double(Color.GREEN,50,HEIGHT,r);
-            pipes.add(pipe_Double);
-        }
-//        pipes[0] =new Pipe(Color.GREEN,200,0,100,150);
-//        pipes[1] =new Pipe(Color.GREEN,((WIDTH+200)/2),0,100,150);
-//        pipes[2] =new Pipe(Color.GREEN,WIDTH,0,100,150);
-//        pipes[3] =new Pipe(Color.GREEN,200,450,100,600);
-//        pipes[4] =new Pipe(Color.GREEN,((WIDTH+200)/2),450,100,600);
-//        pipes[5] =new Pipe(Color.GREEN,WIDTH,450,100,600);
         
+        try {
+            pipes=new LinkedList<>();
+            Pipe_Double pipe_Double= new Pipe_Double(Color.GREEN,70,HEIGHT,WIDTH,r);
+            pipes.add(pipe_Double);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        } 
     }
     public void createBird(){
-        bird= new Bird("imageBird2.png",100,300,50,50);
         
+       //bird= new Bird("bluebird-midflap.png",100,300,20,20);
+       //bird= new Bird("bluebird-downflap.png",100,300,20,20);
+        bird= new Bird("./img/yellowbird-downflap.png","./img/yellowbird-midflap.png","./img/yellowbird-upflap.png",150,300,50,50);
     }
     @Override
     protected void paintComponent(Graphics g) {
@@ -97,11 +113,14 @@ public class BluePanel extends javax.swing.JPanel {
     }
    
     public void drawPipes(Graphics g){
+        
         Iterator<Pipe_Double> iter=pipes.iterator();
+        
         while(iter.hasNext()){
             Pipe_Double p=iter.next();
             p.drawPipes(g);
         }
+
     }
     // tao thread de dich chuyen cac pipe ve ben trai
     
@@ -110,52 +129,47 @@ public class BluePanel extends javax.swing.JPanel {
         @Override
         public void run() {
             while(isPlaying){
-                for(int i=0;i<pipes.size();i++){
-                    pipes.get(i).getUp().x=pipes.get(i).getUp().x-1;
-                    pipes.get(i).getDown().x=pipes.get(i).getDown().x-1;
-                    
-                }
-                repaint();// ham nay goi ham paint trong ham paint co ham ve lai==> ve lai theo x moi
-                // neu pipe dau tien ben trai sat man hinh thi ve lai
                 
-                for (ListIterator <Pipe_Double> iterator = pipes.listIterator(); iterator.hasNext(); ) {
-                Pipe_Double p = iterator.next();
+                ListIterator<Pipe_Double> iter=pipes.listIterator();
+                while(iter.hasNext()){
+                    Pipe_Double p=iter.next();
+                    p.getUp().x=p.getUp().x-1;
+                    p.getDown().x=p.getDown().x-1;
+                }
+
+                // ham nay goi ham paint trong ham paint co ham ve lai==> ve lai theo x moi
+                repaint();
+                List<Integer> listIndexRemove=new Vector<>();
+                List<Pipe_Double> listPipesAdd= new Vector<>();
+                iter=pipes.listIterator();
+                int i=0;
+                while(iter.hasNext()){
+                    
+                    Pipe_Double p=iter.next();
                     if(p.getUp().x+p.getUp().width==0){
-                        Pipe_Double pN= new Pipe_Double(Color.GREEN,50, HEIGHT, r);
-                        //p.setDistance(50);
-                        pN.getUp().x=WIDTH;
-                        pN.getDown().x=WIDTH;
-                        
-                        iterator.remove();
-                        iterator.add(pN);
-                        
+                        //Pipe_Double pNew= new Pipe_Double(Color.GREEN,50, HEIGHT,WIDTH, r);
+                        listIndexRemove.add(i);
+                    }
+                    if(WIDTH-p.getUp().x==400){
+                        Pipe_Double pNew= new Pipe_Double(Color.GREEN,70, HEIGHT,WIDTH, r);
+                        listPipesAdd.add(pNew);
                     }
                     if(p.getUp().intersects(bird)||p.getDown().intersects(bird)){
-                       
                         isPlaying=false;  
                     }
                     if(bird.x==p.getUp().x+p.getUp().width){
+                        Audio.loadPointAudio();
+                        Audio.POINT.start();
                         controlPanel.setPoint(controlPanel.getPoint()+1);
+                       
                     }
+                    i++;
                 }
-//                for(int i=0;i<pipes.size();i++){
-//                    if(pipes.get(i).getUp().x+pipes.get(i).getUp().width==0){
-//                        Pipe_Double p= new Pipe_Double(Color.GREEN,50, HEIGHT, r);
-//                        //p.setDistance(50);
-//                        p.getUp().x=WIDTH;
-//                        p.getDown().x=WIDTH;
-//                        pipes.add(p);
-//                        pipes.remove(i);
-//                        
-//                    }
-//                    if(pipes.get(i).getUp().intersects(bird)||pipes.get(i).getDown().intersects(bird)){
-//                       
-//                        isPlaying=false;  
-//                    }
-//                    if(bird.x==pipes.get(i).getUp().x+pipes.get(i).getUp().width){
-//                        controlPanel.setPoint(controlPanel.getPoint()+1);
-//                    }
-//                }
+                for (Integer k : listIndexRemove) {
+                    pipes.remove(k);
+                }
+                pipes.addAll(listPipesAdd);
+
                 try{
                     Thread.sleep(5);
                 }catch(Exception e){
@@ -164,10 +178,11 @@ public class BluePanel extends javax.swing.JPanel {
                 if(bird.y<0||bird.y>HEIGHT){
                     isPlaying=false;
                 }
+                
             }
         }
     });
-        tCheck= new Thread(new Runnable() {
+    tCheck= new Thread(new Runnable() {
         boolean check=true;
         @Override
         
@@ -234,6 +249,8 @@ public class BluePanel extends javax.swing.JPanel {
         
         if(evt.getKeyCode()==KeyEvent.VK_UP&&isPlaying==true){
             bird.y=bird.y-60;
+            Audio.loadSwingAudio();
+            Audio.WING.start();
         }
     }//GEN-LAST:event_formKeyReleased
 
