@@ -32,12 +32,6 @@ public class Pipe extends Rectangle{
         
     }
 
-    @Override
-    public String toString() {
-        return x+"-"+y;
-    }
-    
-
     
     
 }
